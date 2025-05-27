@@ -2,11 +2,16 @@ const { query } = require('../database');
 const { EMPTY_RESULT_ERROR, SQL_ERROR_CODE, UNIQUE_VIOLATION_ERROR } = require('../errors');
 
 module.exports.create = function create(code, name, credit) {
-    const sql = `INSERT INTO module (mod_code, mod_name, credit_unit) VALUES ($1, $2, $3)`;
-    return query(sql, [code, name, credit]).catch(function (error) {
+    const sql = 'CALL create_module($1, $2, $3)';
+        return query(sql, [code, name, credit])
+        .then(function (result) {
+        console.log('Module created successfully');
+    })
+        .catch(function (error) {
         if (error.code === SQL_ERROR_CODE.UNIQUE_VIOLATION) {
-            throw new UNIQUE_VIOLATION_ERROR(`Module ${code} already exists`);
-        }
+        throw new UNIQUE_VIOLATION_ERROR(`Module ${code} already exists!
+        Cannot create duplicate.`);
+    }
         throw error;
     });
 };
@@ -59,8 +64,10 @@ module.exports.updateByCode = function updateByCode(code, credit) {
 };
 
 module.exports.retrieveAll = function retrieveAll() {
-    const sql = `SELECT * FROM module`;
-    return query(sql).then(function (result) {
+    // retrieve students via stored procedure
+    const sql = `SELECT adm_no, stud_name, gender, crse_code, gpa, gpa_last_updated
+    FROM student`;
+        return query(sql).then(function (result) {
         return result.rows;
     });
 };
